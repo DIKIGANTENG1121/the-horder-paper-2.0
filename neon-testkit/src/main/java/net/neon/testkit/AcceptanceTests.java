@@ -439,12 +439,10 @@ public final class AcceptanceTests {
                     if ("hashCode".equals(m)) return uuid.hashCode();
                     if ("toString".equals(m)) return "TestPlayerProxy[" + name + "]";
                     Class<?> ret = method.getReturnType();
-                    if (ret == boolean.class) return false;
-                    if (ret == int.class) return 0;
-                    if (ret == long.class) return 0L;
-                    if (ret == double.class) return 0.0;
-                    if (ret == float.class) return 0.0f;
-                    return null;
+                 if (ret == boolean.class) return true;
+                 if (ret == int.class) return 0;
+                 if (ret == Optional.class) return Optional.empty();
+                 return null;
                 }
         );
     }
