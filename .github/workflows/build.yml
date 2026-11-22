@@ -1,0 +1,152 @@
+name: Build & Verify HordesPaper
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle 9.1.0
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.1.0'
+
+      - name: Step A — Compile HordesPaper and neon-testkit
+        id: compile
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle clean build --no-daemon 2>&1 | tee build.log
+          mkdir -p dist
+          cp build/libs/HordesPaper-*.jar dist/
+          rm -f dist/*-plain.jar
+          ls -la dist/
+
+      - name: Step B — Download Paper 26.3 STABLE, boot headless, run AT-01..AT-23
+        id: test
+        continue-on-error: true
+        shell: bash
+        run: |
+          chmod +x run_all.sh
+          ./run_all.sh --skip-build
+
+      - name: Evaluate Strict Per-ID Verification Gate (BUG-3)
+        id: gate
+        shell: bash
+        run: |
+          RESULTS_FILE="test-server/neon-testkit-results.txt"
+          if [ ! -f "$RESULTS_FILE" ]; then
+            echo "verified=false" >> "$GITHUB_OUTPUT"
+            echo "label=UNVERIFIED" >> "$GITHUB_OUTPUT"
+            echo "ERROR: neon-testkit-results.txt not found!"
+            exit 0
+          fi
+          cat "$RESULTS_FILE"
+
+          CORE_REQUIRED=(AT-01 AT-02 AT-03 AT-04 AT-05 AT-06 AT-07 AT-09 AT-10 AT-11 AT-12 AT-13 AT-14 AT-15 AT-16 AT-17 AT-20 AT-22 AT-23)
+          TICK_REQUIRED=(AT-18 AT-19)
+
+          HAS_FAIL=0
+          MISSING_CORE=0
+          TICK_SKIPPED=0
+          TICK_MISSING_OR_FAIL=0
+
+          if grep -qE '^\[FAIL\] ' "$RESULTS_FILE"; then
+            HAS_FAIL=1
+          fi
+
+          for id in "${CORE_REQUIRED[@]}"; do
+            if ! grep -qE "^\[PASS\] ${id} " "$RESULTS_FILE"; then
+              echo "MISSING OR NON-PASS core required test: $id"
+              MISSING_CORE=1
+            fi
+          done
+
+          for id in "${TICK_REQUIRED[@]}"; do
+            if grep -qE "^\[PASS\] ${id} " "$RESULTS_FILE"; then
+              continue
+            elif grep -qE "^\[INFO\] ${id} .*SKIPPED:" "$RESULTS_FILE"; then
+              echo "Headless tick-skipped test: $id"
+              TICK_SKIPPED=1
+            else
+              echo "MISSING OR FAIL tick-dependent test: $id"
+              TICK_MISSING_OR_FAIL=1
+            fi
+          done
+
+          if [ "$HAS_FAIL" -eq 0 ] && [ "$MISSING_CORE" -eq 0 ] && [ "$TICK_MISSING_OR_FAIL" -eq 0 ]; then
+            if [ "$TICK_SKIPPED" -eq 0 ]; then
+              echo "verified=true" >> "$GITHUB_OUTPUT"
+              echo "label=VERIFIED" >> "$GITHUB_OUTPUT"
+            else
+              echo "verified=partial" >> "$GITHUB_OUTPUT"
+              echo "label=VERIFIED-PARTIAL" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "verified=false" >> "$GITHUB_OUTPUT"
+            echo "label=UNVERIFIED" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Step C — Upload build.log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: warn
+
+      - name: Step C — Upload HordesPaper-jar artifact (plugin JAR only)
+        if: steps.compile.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HordesPaper-jar-${{ steps.gate.outputs.label }}
+          path: dist/HordesPaper-*.jar
+          if-no-files-found: error
+
+      - name: Step C — Upload neon-report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: neon-report
+          path: |
+            neon-report.txt
+            test-server/neon-testkit-results.txt
+          if-no-files-found: warn
+
+      - name: Step D — Create GitHub Release on tag v*
+        if: startsWith(github.ref, 'refs/tags/v') && steps.gate.outputs.verified == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/HordesPaper-*.jar
+          body: |
+            Automated **VERIFIED** release of HordesPaper for Paper 26.3 (Java 25).
+            All required acceptance tests (AT-01..AT-07, AT-09..AT-20, AT-22, AT-23) passed.
+
+      - name: Enforce Required Test Gate
+        shell: bash
+        run: |
+          LABEL="${{ steps.gate.outputs.label }}"
+          if [ "$LABEL" = "VERIFIED" ]; then
+            echo "PASSED: All required acceptance tests succeeded (VERIFIED)."
+          elif [ "$LABEL" = "VERIFIED-PARTIAL" ]; then
+            echo "PARTIAL: All core required tests passed; AT-18/AT-19 were SKIPPED due to headless server without active player ticking (VERIFIED-PARTIAL). See README.md for manual checklist."
+          else
+            echo "FAILED: Verification gate did not pass (label=$LABEL)."
+            exit 1
+          fi
