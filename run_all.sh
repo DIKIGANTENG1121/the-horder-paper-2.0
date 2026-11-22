@@ -48,7 +48,7 @@ else
 fi
 
 MAIN_JAR="$(find "$ROOT_DIR/build/libs" -maxdepth 1 -name 'HordesPaper-*.jar' ! -name '*-plain.jar' | head -n 1)"
-TESTKIT_JAR="$(find "$ROOT_DIR/neon-testkit/build/libs" -maxdepth 1 -name 'neon-testkit-*.jar' ! -name '*-plain.jar' | head -n 1)"
+TESTKIT_JAR="$(find "$ROOT_DIR/neon-testkit/build/libs" -maxdepth 1 -name 'neon-testkit*.jar' ! -name '*-plain.jar' | head -n 1)"
 if [ -z "$MAIN_JAR" ] || [ -z "$TESTKIT_JAR" ]; then
   echo "ERROR: Built JAR(s) not found."
   exit 1
