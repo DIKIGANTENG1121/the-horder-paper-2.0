@@ -1,0 +1,10 @@
+name: NeonTestkit
+version: '1.0.0-SNAPSHOT'
+main: net.neon.testkit.NeonTestkitPlugin
+description: Dev-only acceptance test harness (AT-01 to AT-14) for HordesPaper
+api-version: '26.3'
+dependencies:
+  server:
+    HordesPaper:
+      load: BEFORE
+      required: true

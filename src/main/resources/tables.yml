@@ -1,0 +1,14 @@
+# Structured YAML spawn tables — customized: ZOMBIE ONLY per user request
+# last-day: 0 means no upper day limit.
+tables:
+  "hordes:default":
+    - entity: ZOMBIE
+      weight: 100
+      first-day: 0
+      last-day: 0
+
+  "hordes:fallback":
+    - entity: ZOMBIE
+      weight: 100
+      first-day: 0
+      last-day: 0

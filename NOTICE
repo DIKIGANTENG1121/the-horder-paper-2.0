@@ -1,0 +1,20 @@
+HordesPaper — Server-Only Paper 26.3 Port of The Hordes
+=======================================================
+
+This plugin is a clean-room Java 25 / Paper 26.3 reimplementation inspired by and
+derived from the design, configuration schema, and game mechanics of:
+
+  The Hordes (NeoForge 1.21.1, version 1.6.3f)
+  Original Author : smileycorp (SmileycorpMC)
+  Original Source : https://github.com/SmileycorpMC/The-Hordes
+  Modrinth Release: https://modrinth.com/mod/the-hordes/version/1.21.1-1.6.3f
+  Original License: GNU Lesser General Public License v2.1 (LGPL-2.1-only)
+
+License Compliance Notice:
+- In accordance with LGPL-2.1, this derived work is distributed under the terms of
+  the GNU Lesser General Public License Version 2.1 (see LICENSE).
+- No Mojang Studios assets, bytecode, or proprietary code are included in this repository.
+- No NeoForge or AtlasLib binaries are bundled; required AtlasLib server-side helpers
+  (weighted selection, geometry/ray-trace logic) were reimplemented independently.
+- Intended primarily for personal server use; if redistributed publicly, retain LICENSE,
+  this NOTICE, full source code, and attribution to smileycorp.

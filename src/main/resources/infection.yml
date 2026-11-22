@@ -1,0 +1,108 @@
+# Infection data (ported from config_defaults/data/hordes/infection/*.json)
+infectors:
+  ZOMBIE: 0.75
+  ZOMBIE_VILLAGER: 0.75
+  HUSK: 0.80
+  DROWNED: 0.70
+  ZOMBIE_HORSE: 0.70
+  ZOMBIFIED_PIGLIN: 0.70
+  ZOGLIN: 0.50
+  # Zombie player variants reuse PDC marker overrides:
+  # zombie_player=0.75, husk_player=0.80, drowned_player=0.70
+
+conversions:
+  VILLAGER:
+    converts-to: ZOMBIE_VILLAGER
+    protection: 0.15
+  HORSE:
+    converts-to: ZOMBIE_HORSE
+    protection: 0.35
+  PIGLIN:
+    converts-to: ZOMBIFIED_PIGLIN
+    protection: 0.15
+  PIGLIN_BRUTE:
+    converts-to: ZOMBIFIED_PIGLIN
+    protection: 0.65
+    max-health: 50.0
+    custom-name: "Zombified Piglin Brute"
+  HOGLIN:
+    converts-to: ZOGLIN
+    protection: 0.85
+  WANDERING_TRADER:
+    converts-to: ZOMBIE_VILLAGER
+    protection: 0.15
+    custom-name: "Zombie Wandering Trader"
+  PILLAGER:
+    converts-to: ZOMBIE_VILLAGER
+    protection: 0.15
+    max-health: 24.0
+    custom-name: "Zombie Pillager"
+  VINDICATOR:
+    converts-to: ZOMBIE_VILLAGER
+    protection: 0.65
+    max-health: 24.0
+    custom-name: "Zombie Vindicator"
+  EVOKER:
+    converts-to: ZOMBIE_VILLAGER
+    protection: 0.50
+    max-health: 24.0
+    custom-name: "Zombie Evoker"
+  ILLUSIONER:
+    converts-to: ZOMBIE_VILLAGER
+    protection: 0.60
+    max-health: 32.0
+    custom-name: "Zombie Illusioner"
+  WITCH:
+    converts-to: ZOMBIE_VILLAGER
+    protection: 0.70
+    max-health: 26.0
+    custom-name: "Zombie Witch"
+
+wearables-protection:
+  LEATHER_BOOTS: { protection: 0.05, operation: "add_multiplied_total" }
+  LEATHER_LEGGINGS: { protection: 0.05, operation: "add_multiplied_total" }
+  LEATHER_CHESTPLATE: { protection: 0.05, operation: "add_multiplied_total" }
+  LEATHER_HELMET: { protection: 0.05, operation: "add_multiplied_total" }
+  CHAINMAIL_BOOTS: { protection: 0.05, operation: "add_multiplied_total" }
+  CHAINMAIL_LEGGINGS: { protection: 0.05, operation: "add_multiplied_total" }
+  CHAINMAIL_CHESTPLATE: { protection: 0.05, operation: "add_multiplied_total" }
+  CHAINMAIL_HELMET: { protection: 0.05, operation: "add_multiplied_total" }
+  IRON_BOOTS: { protection: 0.10, operation: "add_multiplied_total" }
+  IRON_LEGGINGS: { protection: 0.10, operation: "add_multiplied_total" }
+  IRON_CHESTPLATE: { protection: 0.10, operation: "add_multiplied_total" }
+  IRON_HELMET: { protection: 0.10, operation: "add_multiplied_total" }
+  GOLDEN_BOOTS: { protection: 0.10, operation: "add_multiplied_total" }
+  GOLDEN_LEGGINGS: { protection: 0.10, operation: "add_multiplied_total" }
+  GOLDEN_CHESTPLATE: { protection: 0.10, operation: "add_multiplied_total" }
+  GOLDEN_HELMET: { protection: 0.10, operation: "add_multiplied_total" }
+  DIAMOND_BOOTS: { protection: 0.15, operation: "add_multiplied_total" }
+  DIAMOND_LEGGINGS: { protection: 0.15, operation: "add_multiplied_total" }
+  DIAMOND_CHESTPLATE: { protection: 0.15, operation: "add_multiplied_total" }
+  DIAMOND_HELMET: { protection: 0.15, operation: "add_multiplied_total" }
+  NETHERITE_BOOTS: { protection: 0.20, operation: "add_multiplied_total" }
+  NETHERITE_LEGGINGS: { protection: 0.20, operation: "add_multiplied_total" }
+  NETHERITE_CHESTPLATE: { protection: 0.20, operation: "add_multiplied_total" }
+  NETHERITE_HELMET: { protection: 0.20, operation: "add_multiplied_total" }
+  TURTLE_HELMET: { protection: 0.20, operation: "add_multiplied_total" }
+  LEATHER_HORSE_ARMOR: { protection: 0.30, operation: "add_multiplied_total" }
+  IRON_HORSE_ARMOR: { protection: 0.40, operation: "add_multiplied_total" }
+  GOLDEN_HORSE_ARMOR: { protection: 0.40, operation: "add_multiplied_total" }
+  DIAMOND_HORSE_ARMOR: { protection: 0.50, operation: "add_multiplied_total" }
+  WOLF_ARMOR: { protection: 1.00, operation: "add_value" }
+
+# Duration in seconds (multiplied by 20 ticks, verified in InfectionData.applyImmunity)
+immunity-items:
+  ENCHANTED_GOLDEN_APPLE: 150
+
+cures:
+  - GOLDEN_APPLE
+  - ENCHANTED_GOLDEN_APPLE
+
+husk-biomes:
+  - DESERT
+  - SAVANNA
+  - SAVANNA_PLATEAU
+  - WINDSWEPT_SAVANNA
+  - BADLANDS
+  - ERODED_BADLANDS
+  - WOODED_BADLANDS

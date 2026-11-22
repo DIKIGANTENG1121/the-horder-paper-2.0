@@ -1,0 +1,9 @@
+# Simplified data-driven horde rules — locked to hordes:default (ZOMBIE only)
+# Supported conditions: biome, day, random, not
+# Supported actions: set_spawntable, set_spawn_type
+rules:
+  - id: default_zombie_only
+    conditions: []
+    actions:
+      set_spawntable: "hordes:default"
+      set_spawn_type: "avoid_fluids"

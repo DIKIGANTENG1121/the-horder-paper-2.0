@@ -1,0 +1,95 @@
+# HordesPaper configuration — locked mod defaults (PRD v2.1 2A) + PRD v3 revisions (R1, R2, R3)
+debug: false
+
+horde-event:
+  enabled: true
+  command-only: false
+  # R2: 25 zombies per 10 seconds (200 ticks), spread in batches of 5 every 4 ticks
+  spawn-amount: 25
+  spawn-multiplier: 1.05
+  spawn-duration-ticks: 6000
+  spawn-interval-ticks: 200
+  spawn-batch-size: 5
+  spawn-batch-delay-ticks: 4
+  start-time-ticks: 18000
+  spawn-days: 10
+  spawn-variation-days: 0
+  spawn-max: 200
+  global-zombie-cap: 400
+  day-length-ticks: 24000
+  pathing-interval-ticks: 25
+  entity-speed: 1.0
+  spawn-first-day: false
+  can-sleep-during-horde: false
+  prevent-other-players-sleeping: true
+  multiplayer-scaling: 0.8
+  multiplayer-radius: 128.0
+  pause-when-empty: true
+  track-by-player-time: true
+  start-buffer-ticks: 1200
+  spawn-checks: 25
+  spawn-distance: 75.0
+  start-sound: "minecraft:entity.wolf.howl"
+  start-message: "<red>A horde is approaching!"
+  end-message: "<green>The horde has subsided."
+  cannot-sleep-message: "<red>You cannot sleep while a horde is active!"
+  other-horde-sleep-message: "<red>You cannot sleep while another player's horde is active!"
+  # Admin-only console reward commands on natural horde survival. Placeholders: %player%, %world%, %day%
+  reward-commands: []
+
+# R3: Aggressive "The Last of Us" style horde zombie tuning (reloadable without restart)
+horde-zombie:
+  speed-multiplier: 1.6
+  follow-range: 100.0
+  target-lock: true
+  break-doors: true
+  no-sunburn: true
+  no-baby: true
+  no-reinforcements: true
+  health-multiplier: 1.0
+  knockback-resistance: 0.2
+  equipment: "none"
+  drops-multiplier: 0.5
+  xp-multiplier: 0.5
+
+infection:
+  enabled: true
+  infect-players: true
+  player-base-resistance: 0.25
+  ticks-per-stage: 6000
+  slowness-enabled: true
+  hunger-enabled: true
+  spawn-zombie-players: true
+  entities-aggro-conversions: true
+  stage-tick-reduction: 0.95
+  # Server-side visual feedback (no resource pack)
+  show-bossbar: true
+  show-actionbar: true
+  spawn-particles: true
+
+zombie-players:
+  graves-always: false
+  # R1 assumption (PRD v3 Section 2): zombie players spawn as regular ZOMBIE
+  drowned-players: false
+  husk-players: false
+  fire-immune: false
+  burn-in-sunlight: false
+  only-hurt-by-players: false
+  store-items: true
+  despawn-in-peaceful: false
+
+misc:
+  zombies-burn: false
+  skeletons-burn: false
+  zombie-villagers-can-be-cured: false
+  piglins-hoglins-convert: false
+  aggressive-zombie-horses: true
+  zombie-horses-burn: false
+  skeleton-horses-burn: false
+  zombies-scare-horses: true
+  zombie-piglins-hostile: true
+  piglins-hunt-zombies: true
+  piglins-cure-themselves: true
+  illagers-hunt-zombies: true
+  zoglins-attack-undead: false
+  zoglins-attack-mobs: true
