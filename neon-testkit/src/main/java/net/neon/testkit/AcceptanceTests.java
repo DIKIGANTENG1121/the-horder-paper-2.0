@@ -1,6 +1,7 @@
 package net.neon.testkit;
 
 import io.papermc.paper.block.bed.BedEnterAction;
+import io.papermc.paper.block.bed.BedRuleResult;
 import net.neon.hordes.HordesPaperPlugin;
 import net.neon.hordes.config.HordesConfig;
 import net.neon.hordes.core.HordeManager;
@@ -439,10 +440,12 @@ public final class AcceptanceTests {
                     if ("hashCode".equals(m)) return uuid.hashCode();
                     if ("toString".equals(m)) return "TestPlayerProxy[" + name + "]";
                     Class<?> ret = method.getReturnType();
-                 if (ret == boolean.class) return true;
-                 if (ret == int.class) return 0;
-                 if (ret == Optional.class) return Optional.empty();
-                 return null;
+                    if (ret == boolean.class) return false;
+                    if (ret == int.class) return 0;
+                    if (ret == long.class) return 0L;
+                    if (ret == double.class) return 0.0;
+                    if (ret == float.class) return 0.0f;
+                    return null;
                 }
         );
     }
@@ -453,8 +456,10 @@ public final class AcceptanceTests {
                 new Class<?>[]{BedEnterAction.class},
                 (proxy, method, args) -> {
                     Class<?> ret = method.getReturnType();
-                    if (ret == boolean.class) return false;
+                    if (ret == BedRuleResult.class) return BedRuleResult.ALLOWED;
+                    if (ret == boolean.class) return true;
                     if (ret == int.class) return 0;
+                    if (ret == Optional.class) return Optional.empty();
                     return null;
                 }
         );
