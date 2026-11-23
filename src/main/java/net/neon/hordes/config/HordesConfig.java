@@ -240,7 +240,7 @@ public final class HordesConfig {
         ConfigurationSection tablesSec = yml.getConfigurationSection("tables");
         if (tablesSec != null) {
             for (String tableId : tablesSec.getKeys(false)) {
-                List> rawList = tablesSec.getMapList(tableId);
+                List<Map<?, ?>> rawList = tablesSec.getMapList(tableId);
                 List<SpawnTableEntry> entries = new ArrayList<>();
                 for (Map<?, ?> map : rawList) {
                     EntityType type = parseEntityType(String.valueOf(map.get("entity")));
@@ -268,7 +268,7 @@ public final class HordesConfig {
     private void loadScripts() {
         scriptRules.clear();
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "scripts.yml"));
-        List> rawRules = yml.getMapList("rules");
+        List<Map<?, ?>> rawRules = yml.getMapList("rules");
         for (Map<?, ?> ruleMap : rawRules) {
             String id = ruleMap.containsKey("id") ? String.valueOf(ruleMap.get("id")) : "rule";
             List<ScriptRule.Condition> conditions = new ArrayList<>();
