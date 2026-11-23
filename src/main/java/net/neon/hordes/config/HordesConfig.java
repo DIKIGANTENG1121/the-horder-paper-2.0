@@ -133,13 +133,13 @@ public final class HordesConfig {
 
         this.debug = cfg.getBoolean("debug", false);
 
-        // Horde Event
+        // Horde Event (updated defaults: 5-10 per player every 100 ticks / 5s, radius 64.0)
         this.enableHordeEvent = cfg.getBoolean("horde-event.enabled", true);
         this.hordesCommandOnly = cfg.getBoolean("horde-event.command-only", false);
-        this.spawnAmount = Math.max(1, cfg.getInt("horde-event.spawn-amount", 25));
+        this.spawnAmount = Math.max(1, cfg.getInt("horde-event.spawn-amount", 10));
         this.hordeSpawnMultiplier = cfg.getDouble("horde-event.spawn-multiplier", 1.05);
         this.hordeSpawnDuration = Math.max(20, cfg.getInt("horde-event.spawn-duration-ticks", 6000));
-        this.hordeSpawnInterval = Math.max(20, cfg.getInt("horde-event.spawn-interval-ticks", 200));
+        this.hordeSpawnInterval = Math.max(20, cfg.getInt("horde-event.spawn-interval-ticks", 100));
         this.spawnBatchSize = Math.max(1, cfg.getInt("horde-event.spawn-batch-size", 5));
         this.spawnBatchDelayTicks = Math.max(1, cfg.getInt("horde-event.spawn-batch-delay-ticks", 4));
         this.hordeStartTime = cfg.getInt("horde-event.start-time-ticks", 18000);
@@ -153,8 +153,8 @@ public final class HordesConfig {
         this.spawnFirstDay = cfg.getBoolean("horde-event.spawn-first-day", false);
         this.canSleepDuringHorde = cfg.getBoolean("horde-event.can-sleep-during-horde", false);
         this.hordePreventsOtherPlayersSleeping = cfg.getBoolean("horde-event.prevent-other-players-sleeping", true);
-        this.hordeMultiplayerScaling = cfg.getDouble("horde-event.multiplayer-scaling", 0.8);
-        this.hordeMultiplayerRadius = cfg.getDouble("horde-event.multiplayer-radius", 128.0);
+        this.hordeMultiplayerScaling = cfg.getDouble("horde-event.multiplayer-scaling", 1.0);
+        this.hordeMultiplayerRadius = cfg.getDouble("horde-event.multiplayer-radius", 64.0);
         this.pauseEventServer = cfg.getBoolean("horde-event.pause-when-empty", true);
         this.hordeEventByPlayerTime = cfg.getBoolean("horde-event.track-by-player-time", true);
         this.hordeStartBuffer = cfg.getInt("horde-event.start-buffer-ticks", 1200);
@@ -240,7 +240,7 @@ public final class HordesConfig {
         ConfigurationSection tablesSec = yml.getConfigurationSection("tables");
         if (tablesSec != null) {
             for (String tableId : tablesSec.getKeys(false)) {
-                List<Map<?, ?>> rawList = tablesSec.getMapList(tableId);
+                List> rawList = tablesSec.getMapList(tableId);
                 List<SpawnTableEntry> entries = new ArrayList<>();
                 for (Map<?, ?> map : rawList) {
                     EntityType type = parseEntityType(String.valueOf(map.get("entity")));
@@ -268,7 +268,7 @@ public final class HordesConfig {
     private void loadScripts() {
         scriptRules.clear();
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "scripts.yml"));
-        List<Map<?, ?>> rawRules = yml.getMapList("rules");
+        List> rawRules = yml.getMapList("rules");
         for (Map<?, ?> ruleMap : rawRules) {
             String id = ruleMap.containsKey("id") ? String.valueOf(ruleMap.get("id")) : "rule";
             List<ScriptRule.Condition> conditions = new ArrayList<>();
