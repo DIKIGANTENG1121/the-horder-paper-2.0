@@ -67,9 +67,6 @@ public final class HordeManager {
         this.dataFile = new File(plugin.getDataFolder(), "horde-data.yml");
     }
 
-    /**
-     * PRD v3 Section 5: warn at boot if simulation-distance is too small for spawn-distance.
-     */
     public void checkSimulationDistanceWarning() {
         for (World world : Bukkit.getWorlds()) {
             if (world.getEnvironment() != World.Environment.NORMAL) continue;
@@ -153,9 +150,6 @@ public final class HordeManager {
         return total;
     }
 
-    /**
-     * Main 20-tick scheduler for horde timers, wave scheduling, and server empty pause.
-     */
     public void tick(int intervalTicks) {
         if (!config.enableHordeEvent) return;
 
@@ -188,9 +182,6 @@ public final class HordeManager {
         }
     }
 
-    /**
-     * Core per-player tick logic shared by live online players and headless acceptance tests (BUG-1).
-     */
     public void tickState(World world, Location anchor, @Nullable Player owner, HordePlayerState state, int intervalTicks) {
         if (!config.enableHordeEvent) return;
         state.addPlaytimeTicks(intervalTicks);
@@ -202,10 +193,6 @@ public final class HordeManager {
         }
     }
 
-    /**
-     * Per-tick budgeted pathfinding queue (PRD v3 Section 4: max 20 path updates per tick)
-     * plus time-based wooden door / fence gate break fallback on non-Hard difficulties (BUG-5).
-     */
     public void tickPathingAndDoors() {
         int currentTick = Bukkit.getCurrentTick();
         doorSecondTickCounter++;
@@ -324,9 +311,6 @@ public final class HordeManager {
         return buildSpawnDataCore(player.getLocation(), player, state, tableOverride, natural, nearbyPlayers);
     }
 
-    /**
-     * Core spawn-data builder shared by live players and headless acceptance tests (BUG-1).
-     */
     public HordeSpawnData buildSpawnDataCore(
             Location anchor,
             @Nullable Player player,
@@ -385,9 +369,6 @@ public final class HordeManager {
         return startHordeCore(player.getLocation(), player, player.getUniqueId(), state, durationTicks, tableOverride, natural);
     }
 
-    /**
-     * Core horde starter shared by live players and headless acceptance tests (BUG-1).
-     */
     public boolean startHordeCore(
             Location anchor,
             @Nullable Player owner,
@@ -429,7 +410,6 @@ public final class HordeManager {
             playStartSound(owner);
         }
 
-        // First wave spawns immediately with 5-10 zombies per nearby player, then every 100 ticks (5s)
         int firstWaveAmount = rollNearbyScaledWaveAmount(anchor, owner, state);
         spawnWaveCore(anchor, owner, ownerId, state, firstWaveAmount, state.getActiveSpawnType());
         state.setWaveCooldownTicks(data.getIntervalTicks());
@@ -493,9 +473,8 @@ public final class HordeManager {
 
     /**
      * Rolls 5-10 zombies per nearby player within multiplayer-radius (default 64 blocks).
-     * - 1 solo player -> 5..10 zombies every 5 seconds
-     * - 2 players together (<= 64 blocks) -> 10..20 zombies total every 5 seconds
-     *   (whether only 1 player has an active horde, or both have active hordes).
+     * 1 solo player -> 5..10 zombies every 5 seconds.
+     * 2 players together (<= 64 blocks) -> 10..20 zombies total every 5 seconds.
      */
     private int rollNearbyScaledWaveAmount(Location anchor, @Nullable Player owner, HordePlayerState state) {
         int playerCount = 1;
@@ -527,25 +506,17 @@ public final class HordeManager {
         int total = 0;
         int span = (MAX_ZOMBIES_PER_PLAYER - MIN_ZOMBIES_PER_PLAYER) + 1;
         for (int i = 0; i < playerCount; i++) {
-            total += MIN_ZOMBIES_PER_PLAYER + random.nextInt(span); // 5..10 per player
+            total += MIN_ZOMBIES_PER_PLAYER + random.nextInt(span);
         }
         return Math.min(total, config.hordeSpawnMax);
     }
 
-    /**
-     * R2: Delegates to {@link #spawnWaveCore} using the player's current state and location.
-     */
     public int spawnWave(Player player, int requestedCount, @Nullable String tableId, @Nullable String spawnType) {
         HordePlayerState state = getOrCreateState(player);
         String resolvedSpawnType = spawnType != null ? spawnType : "avoid_fluids";
         return spawnWaveCore(player.getLocation(), player, player.getUniqueId(), state, requestedCount, resolvedSpawnType);
     }
 
-    /**
-     * Core wave spawner (BUG-1, BUG-7): spreads wave spawns across batches (default 5 zombies every 4 ticks),
-     * enforces per-player spawn-max (200) and global-zombie-cap (400) using a single global count per wave/batch,
-     * and logs failed spawn-location attempts explicitly.
-     */
     public int spawnWaveCore(
             Location anchor,
             @Nullable Player owner,
@@ -644,10 +615,6 @@ public final class HordeManager {
         return targetCount;
     }
 
-    /**
-     * Spawns a single R1/R3 horde zombie at the given location and applies all crazy-zombie attributes.
-     * Uses World#spawn(..., randomizeData=false) plus explicit vehicle/passenger removal (BUG-6).
-     */
     public @Nullable Zombie spawnHordeZombieAt(Location loc, @Nullable UUID ownerId, @Nullable Player ownerPlayer) {
         if (loc.getWorld() == null) return null;
 
@@ -659,4 +626,220 @@ public final class HordeManager {
                 z -> {}
         );
 
-        // R1: strictly adult plain ZOMBIE, never baby, never chicken jockey/vehicle/passenger (BUG
+        if (config.hordeZombieNoBaby) {
+            zombie.setAdult();
+        }
+        Entity vehicle = zombie.getVehicle();
+        if (vehicle != null) {
+            zombie.leaveVehicle();
+            vehicle.remove();
+        }
+        if (!zombie.getPassengers().isEmpty()) {
+            List<Entity> passengers = new ArrayList<>(zombie.getPassengers());
+            zombie.eject();
+            for (Entity p : passengers) {
+                p.remove();
+            }
+        }
+
+        if ("none".equalsIgnoreCase(config.hordeZombieEquipment)) {
+            EntityEquipment eq = zombie.getEquipment();
+            if (eq != null) {
+                eq.clear();
+                eq.setArmorContents(new ItemStack[4]);
+                eq.setItemInMainHand(null);
+                eq.setItemInOffHand(null);
+            }
+        }
+
+        applyCrazyZombieAttributes(zombie);
+
+        PersistentDataContainer pdc = zombie.getPersistentDataContainer();
+        pdc.set(keys.hordeZombieTag, PersistentDataType.BYTE, (byte) 1);
+        if (ownerId != null) {
+            pdc.set(keys.hordeOwner, PersistentDataType.STRING, ownerId.toString());
+        }
+        zombie.setRemoveWhenFarAway(true);
+
+        if (ownerPlayer != null) {
+            HordeSpawnEntityEvent spawnEvent = new HordeSpawnEntityEvent(ownerPlayer, zombie);
+            Bukkit.getPluginManager().callEvent(spawnEvent);
+            if (spawnEvent.isCancelled()) {
+                zombie.remove();
+                return null;
+            }
+            zombie.setTarget(ownerPlayer);
+            zombie.getPathfinder().moveTo(ownerPlayer, 1.0);
+        }
+
+        return zombie;
+    }
+
+    public void applyCrazyZombieAttributes(Zombie zombie) {
+        zombie.setAggressive(true);
+        zombie.setShouldBurnInDay(!config.hordeZombieNoSunburn);
+        zombie.setCanBreakDoors(config.hordeZombieBreakDoors);
+        zombie.getPathfinder().setCanOpenDoors(config.hordeZombieBreakDoors);
+
+        AttributeInstance speed = zombie.getAttribute(Attribute.MOVEMENT_SPEED);
+        if (speed != null) {
+            speed.removeModifier(keys.hordeSpeedModifier);
+            double delta = config.hordeZombieSpeedMultiplier - 1.0;
+            if (Math.abs(delta) > 0.0001) {
+                speed.addModifier(new AttributeModifier(
+                        keys.hordeSpeedModifier,
+                        delta,
+                        AttributeModifier.Operation.MULTIPLY_SCALAR_1
+                ));
+            }
+        }
+
+        AttributeInstance follow = zombie.getAttribute(Attribute.FOLLOW_RANGE);
+        if (follow != null) {
+            double desiredFollow = Math.max(config.hordeZombieFollowRange, config.hordeSpawnDistance + 25.0);
+            follow.setBaseValue(desiredFollow);
+        }
+
+        if (config.hordeZombieNoReinforcements) {
+            AttributeInstance reinf = zombie.getAttribute(Attribute.SPAWN_REINFORCEMENTS);
+            if (reinf != null) {
+                reinf.setBaseValue(0.0);
+            }
+        }
+
+        AttributeInstance kb = zombie.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
+        if (kb != null) {
+            kb.setBaseValue(config.hordeZombieKnockbackResistance);
+        }
+
+        AttributeInstance maxHp = zombie.getAttribute(Attribute.MAX_HEALTH);
+        if (maxHp != null && Math.abs(config.hordeZombieHealthMultiplier - 1.0) > 0.0001) {
+            double scaledHp = Math.max(1.0, maxHp.getBaseValue() * config.hordeZombieHealthMultiplier);
+            maxHp.setBaseValue(scaledHp);
+            zombie.setHealth(scaledHp);
+        }
+    }
+
+    public @Nullable Location findValidSpawnLocation(Location origin, String spawnType) {
+        World world = origin.getWorld();
+        if (world == null) return null;
+        double dist = config.hordeSpawnDistance;
+
+        for (int attempt = 0; attempt < config.hordeSpawnChecks; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            double r = dist * (0.65 + 0.35 * random.nextDouble());
+            int x = (int) Math.round(origin.getX() + Math.cos(angle) * r);
+            int z = (int) Math.round(origin.getZ() + Math.sin(angle) * r);
+            if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
+
+            int y = world.getHighestBlockYAt(x, z) + 1;
+            Block feet = world.getBlockAt(x, y, z);
+            Block below = world.getBlockAt(x, y - 1, z);
+            Block head = world.getBlockAt(x, y + 1, z);
+
+            boolean valid = switch (spawnType.toLowerCase(Locale.ROOT)) {
+                case "prefer_water" -> feet.getType() == Material.WATER || (!feet.isSolid() && !head.isSolid());
+                case "prefer_lava" -> feet.getType() == Material.LAVA || (!feet.isSolid() && !head.isSolid());
+                case "ignore_fluids" -> !feet.isSolid() && !head.isSolid();
+                case "ignore_water" -> feet.getType() != Material.LAVA && !feet.isSolid() && !head.isSolid();
+                default -> !feet.isLiquid() && !below.isLiquid() && below.isSolid() && !feet.isSolid() && !head.isSolid();
+            };
+
+            if (valid) {
+                return new Location(world, x + 0.5, y, z + 0.5);
+            }
+        }
+        return null;
+    }
+
+    public int getCurrentDay(Player player, HordePlayerState state) {
+        return getCurrentDay(player.getWorld(), state);
+    }
+
+    public int getCurrentDay(World world, HordePlayerState state) {
+        long ticks = config.hordeEventByPlayerTime ? state.getPlaytimeTicks() : world.getFullTime();
+        return (int) (ticks / config.dayLength);
+    }
+
+    private void playStartSound(Player player) {
+        String raw = config.startSound == null || config.startSound.isBlank()
+                ? "minecraft:entity.wolf.howl"
+                : config.startSound.trim().toLowerCase(Locale.ROOT);
+        if (!raw.contains(":")) {
+            raw = "minecraft:" + raw.replace('_', '.');
+        }
+        try {
+            Sound sound = Sound.sound(Key.key(raw), Sound.Source.HOSTILE, 1.0f, 0.8f);
+            player.playSound(sound);
+        } catch (Exception ignored) {
+            Sound fallback = Sound.sound(Key.key("minecraft", "entity.wolf.howl"), Sound.Source.HOSTILE, 1.0f, 0.8f);
+            player.playSound(fallback);
+        }
+    }
+
+    private void dispatchRewardCommands(Player player, int day) {
+        String safeName = player.getName();
+        String safeWorld = player.getWorld().getName();
+        for (String template : config.rewardCommands) {
+            if (template == null || template.isBlank()) continue;
+            String cmd = template
+                    .replace("%player%", safeName)
+                    .replace("%world%", safeWorld)
+                    .replace("%day%", String.valueOf(day));
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+        }
+    }
+
+    public void loadData() {
+        states.clear();
+        if (!dataFile.exists()) return;
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(dataFile);
+        ConfigurationSection sec = yml.getConfigurationSection("players");
+        if (sec == null) return;
+        for (String uuidStr : sec.getKeys(false)) {
+            try {
+                UUID id = UUID.fromString(uuidStr);
+                ConfigurationSection ps = sec.getConfigurationSection(uuidStr);
+                if (ps == null) continue;
+                HordePlayerState st = new HordePlayerState(
+                        id,
+                        ps.getString("name", "unknown"),
+                        ps.getInt("next-horde-day", config.hordeSpawnDays)
+                );
+                st.setPlaytimeTicks(ps.getLong("playtime-ticks", 0));
+                st.setNaturalHordeCount(ps.getInt("natural-horde-count", 0));
+                st.setActive(ps.getBoolean("active", false));
+                st.setRemainingTicks(ps.getInt("remaining-ticks", 0));
+                st.setWaveCooldownTicks(ps.getInt("wave-cooldown-ticks", 0));
+                st.setActiveTable("hordes:default");
+                st.setActiveSpawnType(ps.getString("active-spawn-type", "avoid_fluids"));
+                st.setCurrentWaveAmount(ps.getInt("current-wave-amount", config.spawnAmount));
+                states.put(id, st);
+            } catch (IllegalArgumentException ignored) {
+                plugin.getLogger().warning("Skipping invalid UUID in horde-data.yml: " + uuidStr);
+            }
+        }
+    }
+
+    public void saveData() {
+        YamlConfiguration yml = new YamlConfiguration();
+        for (HordePlayerState st : states.values()) {
+            String base = "players." + st.getPlayerId();
+            yml.set(base + ".name", st.getLastKnownName());
+            yml.set(base + ".playtime-ticks", st.getPlaytimeTicks());
+            yml.set(base + ".natural-horde-count", st.getNaturalHordeCount());
+            yml.set(base + ".next-horde-day", st.getNextHordeDay());
+            yml.set(base + ".active", st.isActive());
+            yml.set(base + ".remaining-ticks", st.getRemainingTicks());
+            yml.set(base + ".wave-cooldown-ticks", st.getWaveCooldownTicks());
+            yml.set(base + ".active-table", st.getActiveTable());
+            yml.set(base + ".active-spawn-type", st.getActiveSpawnType());
+            yml.set(base + ".current-wave-amount", st.getCurrentWaveAmount());
+        }
+        try {
+            yml.save(dataFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to save horde-data.yml: " + e.getMessage());
+        }
+    }
+}
