@@ -4,11 +4,11 @@ debug: false
 horde-event:
   enabled: true
   command-only: false
-  # R2: 25 zombies per 10 seconds (200 ticks), spread in batches of 5 every 4 ticks
-  spawn-amount: 25
+  # Updated: 5-10 zombies per player every 5 seconds (100 ticks), scaling to 10-20 for 2 nearby players (<= 64 blocks)
+  spawn-amount: 10
   spawn-multiplier: 1.05
   spawn-duration-ticks: 6000
-  spawn-interval-ticks: 200
+  spawn-interval-ticks: 100
   spawn-batch-size: 5
   spawn-batch-delay-ticks: 4
   start-time-ticks: 18000
@@ -22,8 +22,8 @@ horde-event:
   spawn-first-day: false
   can-sleep-during-horde: false
   prevent-other-players-sleeping: true
-  multiplayer-scaling: 0.8
-  multiplayer-radius: 128.0
+  multiplayer-scaling: 1.0
+  multiplayer-radius: 64.0
   pause-when-empty: true
   track-by-player-time: true
   start-buffer-ticks: 1200
