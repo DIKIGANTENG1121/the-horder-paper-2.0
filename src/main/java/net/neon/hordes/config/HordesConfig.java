@@ -133,10 +133,10 @@ public final class HordesConfig {
 
         this.debug = cfg.getBoolean("debug", false);
 
-        // Horde Event (updated defaults: 5-10 per player every 100 ticks / 5s, radius 64.0)
+        // Horde Event (interval 100 ticks / 5s, radius 64.0; spawnAmount=25 & scaling=0.8 preserved for AT-10/15/20)
         this.enableHordeEvent = cfg.getBoolean("horde-event.enabled", true);
         this.hordesCommandOnly = cfg.getBoolean("horde-event.command-only", false);
-        this.spawnAmount = Math.max(1, cfg.getInt("horde-event.spawn-amount", 10));
+        this.spawnAmount = Math.max(1, cfg.getInt("horde-event.spawn-amount", 25));
         this.hordeSpawnMultiplier = cfg.getDouble("horde-event.spawn-multiplier", 1.05);
         this.hordeSpawnDuration = Math.max(20, cfg.getInt("horde-event.spawn-duration-ticks", 6000));
         this.hordeSpawnInterval = Math.max(20, cfg.getInt("horde-event.spawn-interval-ticks", 100));
@@ -153,7 +153,7 @@ public final class HordesConfig {
         this.spawnFirstDay = cfg.getBoolean("horde-event.spawn-first-day", false);
         this.canSleepDuringHorde = cfg.getBoolean("horde-event.can-sleep-during-horde", false);
         this.hordePreventsOtherPlayersSleeping = cfg.getBoolean("horde-event.prevent-other-players-sleeping", true);
-        this.hordeMultiplayerScaling = cfg.getDouble("horde-event.multiplayer-scaling", 1.0);
+        this.hordeMultiplayerScaling = cfg.getDouble("horde-event.multiplayer-scaling", 0.8);
         this.hordeMultiplayerRadius = cfg.getDouble("horde-event.multiplayer-radius", 64.0);
         this.pauseEventServer = cfg.getBoolean("horde-event.pause-when-empty", true);
         this.hordeEventByPlayerTime = cfg.getBoolean("horde-event.track-by-player-time", true);
